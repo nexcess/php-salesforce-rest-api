@@ -91,15 +91,13 @@ class CRUD
 
         $headers = [
             'Authorization' => "OAuth {$this->access_token}",
-            'Content-type' => 'application/json'
+            'Content-type' => 'application/json',
+            // Prevent Salesforce from auto-assigning on ALL object creates
+            // Use ReassignCase__c field when explicit assignment is needed
+            // Fixes: Nexcess Automation User unintentionally moving cases
+            // @see MAD-12977 (original Comment__c fix), MAD-15857
+            'Sforce-Auto-Assign' => 'FALSE'
         ];
-        
-        // if the object type is a Comment__c, assign a header
-        // that prevents SF from auto-assigning
-        // @see MAD-12977
-        if ($object === 'Comment__c') {
-            $headers['Sforce-Auto-Assign'] = 'FALSE';
-        }
 
         $request = $client->request('POST', $url, [
             'headers' => $headers,
@@ -126,7 +124,12 @@ class CRUD
         $request = $client->request('PATCH', $url, [
             'headers' => [
                 'Authorization' => "OAuth $this->access_token",
-                'Content-type' => 'application/json'
+                'Content-type' => 'application/json',
+                // Prevent Salesforce from auto-assigning on ALL object updates
+                // Use ReassignCase__c field when explicit assignment is needed
+                // Fixes: Nexcess Automation User unintentionally moving cases
+                // @see MAD-15857
+                'Sforce-Auto-Assign' => 'FALSE'
             ],
             'json' => $data
         ]);
@@ -151,7 +154,12 @@ class CRUD
         $request = $client->request('PATCH', $url, [
             'headers' => [
                 'Authorization' => "OAuth {$this->access_token}",
-                'Content-type' => 'application/json'
+                'Content-type' => 'application/json',
+                // Prevent Salesforce from auto-assigning on ALL object upserts
+                // Use ReassignCase__c field when explicit assignment is needed
+                // Fixes: Nexcess Automation User unintentionally moving cases
+                // @see MAD-15857
+                'Sforce-Auto-Assign' => 'FALSE'
             ],
             'json' => $data
         ]);
