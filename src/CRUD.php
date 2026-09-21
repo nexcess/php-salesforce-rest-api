@@ -91,13 +91,14 @@ class CRUD
 
         $headers = [
             'Authorization' => "OAuth {$this->access_token}",
-            'Content-type' => 'application/json',
-            // Prevent Salesforce from auto-assigning on ALL object creates
-            // Use ReassignCase__c field when explicit assignment is needed
-            // Fixes: Nexcess Automation User unintentionally moving cases
-            // @see MAD-12977 (original Comment__c fix), MAD-15857
-            'Sforce-Auto-Assign' => 'FALSE'
+            'Content-type' => 'application/json'
         ];
+
+        // Case creation must keep triggering SF assignment rules;
+        // only Comment__c inserts opt out (@see MAD-12977)
+        if ($object === 'Comment__c') {
+            $headers['Sforce-Auto-Assign'] = 'FALSE';
+        }
 
         $request = $client->request('POST', $url, [
             'headers' => $headers,
@@ -125,10 +126,7 @@ class CRUD
             'headers' => [
                 'Authorization' => "OAuth $this->access_token",
                 'Content-type' => 'application/json',
-                // Prevent Salesforce from auto-assigning on ALL object updates
-                // Use ReassignCase__c field when explicit assignment is needed
-                // Fixes: Nexcess Automation User unintentionally moving cases
-                // @see MAD-15857
+                // Updates must never re-run SF assignment rules (@see MAD-16820)
                 'Sforce-Auto-Assign' => 'FALSE'
             ],
             'json' => $data
@@ -155,10 +153,7 @@ class CRUD
             'headers' => [
                 'Authorization' => "OAuth {$this->access_token}",
                 'Content-type' => 'application/json',
-                // Prevent Salesforce from auto-assigning on ALL object upserts
-                // Use ReassignCase__c field when explicit assignment is needed
-                // Fixes: Nexcess Automation User unintentionally moving cases
-                // @see MAD-15857
+                // Updates must never re-run SF assignment rules (@see MAD-16820)
                 'Sforce-Auto-Assign' => 'FALSE'
             ],
             'json' => $data
